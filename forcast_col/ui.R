@@ -11,23 +11,32 @@ library(shiny)
 
 # Define UI for application that draws a histogram
 shinyUI(fluidPage(
+  leafletjs,
+  titlePanel("COVID 19  Case Development"),
 
-    # Application title
-    titlePanel("Old Faithful Geyser Data"),
+  sidebarPanel(width = 2,
 
-    # Sidebar with a slider input for number of bins
-    sidebarLayout(
-        sidebarPanel(
-            sliderInput("bins",
-                        "Number of bins:",
-                        min = 1,
-                        max = 50,
-                        value = 30)
-        ),
+               radioButtons(inputId = "mapType",
+                            label = "Select Map Type",
+                            choices = c("Markers", "Choropleth"),
+                            selected = "Markers",
+                            inline = TRUE),
 
-        # Show a plot of the generated distribution
-        mainPanel(
-            plotOutput("distPlot")
-        )
-    )
-))
+               radioButtons(inputId = "frequency",
+                            label = "Select Data Frequency",
+                            choices = c("days", "weeks"),
+                            selected = "weeks",
+                            inline = TRUE
+               ),
+
+               uiOutput("dateUI")
+
+  ),
+
+  mainPanel(width = 10,
+
+            leafletOutput("map", width = "70%", height = "750px")
+
+  )
+)
+)
