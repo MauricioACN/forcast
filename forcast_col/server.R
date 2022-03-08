@@ -5,92 +5,71 @@ library(RColorBrewer)
 library(xts)
 library(rgdal)
 
+# source("config.R")
 # Define server logic required to draw a histogram
 shinyServer(function(input, output) {
 
   #create slider input depending on data frequency
-  observe({
 
-    allDates <- unique(covidData$Date_reported)
-    eligibleDates <- allDates[xts::endpoints(allDates, on = input$frequency)]
-
-    if(input$frequency == "weeks"){
-      stepSize = 7
-    }else{
-      stepSize = 1
-    }
+    allDates <- unique(df_full_agg$FECCORTE)
+    eligibleDates <- allDates[xts::endpoints(allDates)]
 
     output$dateUI <- renderUI({
       sliderInput("dateSel", "Date",
                   min = min(eligibleDates),
                   max = max(eligibleDates),
                   value = min(eligibleDates),
-                  step = stepSize,
+                  step = 3,
                   timeFormat = "%d %b %y",
                   animate = animationOptions(interval = 500, loop = FALSE)
       )
-    })
   })
 
   #filter data depending on selected date
   filteredData <- reactive({
     req(input$dateSel)
-    covidData[covidData$Date_reported == input$dateSel, ]
+    df_full_agg[df_full_agg$FECCORTE == input$dateSel, ]
   })
 
   #create the base leaflet map
   output$map <- renderLeaflet({
-
-    leaflet(world_spdf) %>%
-      addTiles()  %>%
-      setView(lat = 0, lng = 0, zoom = 2) %>%
-
-      addPolygons(
-        layerId = ~ISO2,
+    map = leaflet(deptos4)
+    map = addTiles(map)
+    map = addPolygons(map,
         fillColor = "lightgray",
-        stroke = TRUE,
-        fillOpacity = 1,
-        color = "white",
-        weight = 1
-      ) %>%
+        highlightOptions = highlightOptions(color = "red", weight = 2,
+                                            bringToFront = TRUE),
+        fillOpacity = 0.5,
+        color = "#444444",
+        weight = 1,
+        smoothFactor = 0.5,
+        label = lapply(LabelText, htmltools::HTML)
+      )
 
-      #need to specify the leaflet::addLegend function here to avoid ambiguity with the xts::addLegend function
-      leaflet::addLegend(pal = colorPalette, values = covidData$Cumulative_cases, opacity = 0.9, title = "Cases", position = "bottomleft")
-
+    map <- map %>% leaflet::addLegend(pal = colorPalette,
+                                        values = ~deptos4$prom_subsidio,
+                                        opacity=0.9,
+                                        title = "Promedio de Subsidio",
+                                        position = "bottomleft")
+    map
   })
 
-
-  #prepare data depending on selected date and draw either markers or update polygons depending on the selected map type
   observe({
 
-    world_spdf$Cases <- filteredData()$Cumulative_cases[match(world_spdf$ISO2, filteredData()$Country_code)]
+    df_filterd = filteredData()
 
-    world_spdf@data$LabelText <- paste0(
-      "<b>Country:</b> ", world_spdf@data$NAME,"<br>",
-      "<b>Cases:</b> ", format(world_spdf@data$Cases, nsmall=0, big.mark=","))
+    #create label texts
+    LabelText <- paste0(
+      "<b>Departamento:</b> ", df_filterd$NOMBRE_DPT,"<br>",
+      "<b>Valor Subsidio:</b> ", format(df_filterd$prom_subsidio, nsmall=0, big.mark=","),"<br>",
+      "<b>Cantidad Créditos:</b> ", format(df_filterd$n_creditos, nsmall=0, big.mark=","),"<br>",
+      "<b>Cantidad Operaciones:</b> ", format(df_filterd$prom_operaciones, nsmall=0, big.mark=","),"<br>",
+      "<b>Valor Créditos:</b> ", format(df_filterd$prom_millones, nsmall=0, big.mark=","),"<br>",
+      "<b>Participación subsidiada:</b> ", format(round((df_filterd$prom_subsidio/df_filterd$prom_millones)*100,2), nsmall=0, big.mark=","))
 
-    if(input$mapType == "Markers"){
+    qpal <- colorQuantile("YlOrRd", df_filterd$prom_subsidio)(df_filterd$prom_subsidio)
 
-      leafletProxy("map", data = world_spdf) %>%
-        clearMarkers() %>%
-        setShapeStyle(layerId = ~ISO2, fillColor = "lightgray") %>%
-        addCircleMarkers(lng = ~LON,
-                         lat = ~LAT,
-                         radius = ~log(Cases) * 2,
-                         weight = 1,
-                         opacity = 1,
-                         color = ~ifelse(Cases > 0, "black", "transparent"),
-                         fillColor = ~ifelse(Cases > 0, colorPalette(Cases), "transparent"),
-                         fillOpacity = 0.8,
-                         label = ~lapply(LabelText, htmltools::HTML))
-
-    }else if(input$mapType == "Choropleth"){
-
-      leafletProxy("map", data = world_spdf) %>%
-        clearMarkers() %>%
-        setShapeStyle(layerId = ~ISO2, fillColor = ~ifelse(Cases > 0, colorPalette(Cases), "lightgray"), label = world_spdf$LabelText)
-
-    }
-})
+    leafletProxy("map",data = df_filterd) %>% setShapeStyle(fillColor = ~ifelse(prom_subsidio > 0, colorPalette(prom_subsidio), "lightgray"), label = LabelText)
+  })
 
 })

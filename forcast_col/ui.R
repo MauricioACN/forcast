@@ -16,26 +16,13 @@ shinyUI(fluidPage(
 
   sidebarPanel(width = 2,
 
-               radioButtons(inputId = "mapType",
-                            label = "Select Map Type",
-                            choices = c("Markers", "Choropleth"),
-                            selected = "Markers",
-                            inline = TRUE),
-
-               radioButtons(inputId = "frequency",
-                            label = "Select Data Frequency",
-                            choices = c("days", "weeks"),
-                            selected = "weeks",
-                            inline = TRUE
-               ),
-
                uiOutput("dateUI")
 
   ),
 
   mainPanel(width = 10,
 
-            leafletOutput("map", width = "70%", height = "750px")
+            leafletOutput("map", width = "100%", height = "500px")
 
   )
 )
