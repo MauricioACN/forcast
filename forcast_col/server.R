@@ -110,8 +110,11 @@ server <- function(input, output) {
   })
 
   output$value5 <- renderValueBox({
-    valueBox(value = textOutput("texto"),
-             subtitle = "Fecha de Análisis",width = 2)
+
+    value = sum(filteredData()$prom_subsidio)
+    value = paste0("$",format(round(value/1e6, 0), trim = TRUE), " M")
+    valueBox(value = value,subtitle = "Total Valor Subsidios",width = 2)
+
   })
 
   output$value6 <- renderValueBox({
