@@ -22,7 +22,7 @@ ui <- dashboardPage(skin = 'blue',
                valueBoxOutput("value3",width = 2),
                valueBoxOutput("value4",width = 2),
                valueBoxOutput("value5",width = 2),
-               valueBox(value = 20,subtitle = "Total Valor Créditos",width = 2))),
+               valueBoxOutput("value6",width = 2))),
        fluidRow(
          box(title = "Configuración",uiOutput("dateUI")),
          box(title = "Comportamiento por Departamento",
