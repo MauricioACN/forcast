@@ -2,6 +2,7 @@ library(shiny)
 source("config.R")
 library(dashboardthemes)
 library(shinydashboard)
+library(plotly)
 
 # Define UI for application that draws a histogram
 ui <- dashboardPage(skin = 'blue',
@@ -27,9 +28,9 @@ ui <- dashboardPage(skin = 'blue',
                valueBoxOutput("value5",width = 2),
                valueBoxOutput("value6",width = 2))),
        fluidRow(column(width = 6,
-         box(title = "Configuración",uiOutput("dateUI"),width = 12),
-         box(title = "Participación por Sector General",plotlyOutput("plot_sector"),width = 12)),
-         column(width = 6,box(title = "Comportamiento por Departamento",leafletOutput("map"),width = 12))
+         box(title = "Configuración",uiOutput("dateUI"),width = 12,status = "primary",solidHeader = TRUE),
+         box(title = "Participación por Sector General",plotlyOutput("plot_sector",height = 550),width = 12,status = "primary",solidHeader = TRUE)),
+         column(width = 6,box(title = "Comportamiento por Departamento",leafletOutput("map", height = 740),width = 12,status = "primary",solidHeader = TRUE))
     )
     ),
     tabItem(tabName = 'calculo_ratios'),
