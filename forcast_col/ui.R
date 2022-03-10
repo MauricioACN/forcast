@@ -11,7 +11,7 @@ library(shiny)
 
 # Define UI for application that draws a histogram
 shinyUI(fluidPage(
-  leafletjs,
+  # leafletjs,
   titlePanel("COVID 19  Case Development"),
 
   sidebarPanel(width = 2,

@@ -40,3 +40,4 @@ vignettes/*.pdf
 
 # databases
 /data
+/forcast_col/data_clean
