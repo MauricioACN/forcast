@@ -17,8 +17,14 @@ ui <- dashboardPage(skin = 'blue',
                      )),
     dashboardBody(
       tabItems(#panel general
-        tabItem(tabName = 'panel_general'),
+        tabItem(tabName = 'panel_general',
+                tabBox(id='tab_files', title = 'Sobre la herramienta', width = '600px',height = '100%',
+                       tabPanel('Sobre los Datos', value = 'pg_datos'),
+                       tabPanel('Sobre los Gráficos', value = 'pg_graficos'),
+                       tabPanel('Sobre los Modelos', value = 'pg_modelos'))),
         tabItem(tabName = 'cargue_dataset',
+                tabBox(id='tab_files', title = 'Análisis Departamento', width = '600px',height = '100%',
+                       tabPanel('Análisis General', value = 'cd_general',
       fluidRow(
         column(width = 12,
                valueBoxOutput("value1",width = 2),
@@ -31,8 +37,11 @@ ui <- dashboardPage(skin = 'blue',
          box(title = "Configuración",uiOutput("dateUI"),width = 12,status = "primary",solidHeader = TRUE),
          box(title = "Participación por Sector General",plotlyOutput("plot_sector",height = 550),width = 12,status = "primary",solidHeader = TRUE)),
          column(width = 6,box(title = "Comportamiento por Departamento",leafletOutput("map", height = 740),width = 12,status = "primary",solidHeader = TRUE))
-    )
-    ),
+         )
+      ),
+      tabPanel('Análisis Detallado', value = 'cd_detalle')
+      )
+      ),
     tabItem(tabName = 'calculo_ratios'),
     tabItem(tabName = 'calculo_fw')
   )
