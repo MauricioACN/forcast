@@ -15,6 +15,9 @@ ui <- dashboardPage(skin = 'blue',
                                  menuItem('Proyecciones', tabName = 'calculo_fw', icon=shiny::icon('cogs'))
                      )),
     dashboardBody(
+      tabItems(#panel general
+        tabItem(tabName = 'panel_general'),
+        tabItem(tabName = 'cargue_dataset',
       fluidRow(
         column(width = 12,
                valueBoxOutput("value1",width = 2),
@@ -28,5 +31,10 @@ ui <- dashboardPage(skin = 'blue',
          box(title = "Participación por Sector General",plotlyOutput("plot_sector"),width = 12)),
          column(width = 6,box(title = "Comportamiento por Departamento",leafletOutput("map"),width = 12))
     )
-    )
+    ),
+    tabItem(tabName = 'calculo_ratios'),
+    tabItem(tabName = 'calculo_fw')
   )
+)
+)
+
