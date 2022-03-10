@@ -31,29 +31,29 @@ df = data_clean(df)
 
 ################################## Construccion de df final ##################################
 
-df_depto_agg = df %>% group_by(FECCORTE,COD_DPT,SECTOR_F,TIPO_PRODUCTOR_F) %>%
+df_depto_agg = df %>% group_by(FECCORTE_F,COD_DPT,SECTOR_F,TIPO_PRODUCTOR_F) %>%
   summarise(n_creditos = n(),
-            prom_operaciones = mean(No_OPERACIONES,na.rm=T),
-            prom_millones = mean(Millones,na.rm=T),
-            prom_subsidio = mean(Subsidio,na.rm=T)) %>%
-  rename(#FECCORTE=FECCORTE_F,
+            prom_operaciones = sum(No_OPERACIONES,na.rm=T),
+            prom_millones = sum(Millones,na.rm=T),
+            prom_subsidio = sum(Subsidio,na.rm=T)) %>%
+  rename(FECCORTE=FECCORTE_F,
          SECTOR = SECTOR_F,
          TIPO_PRODUCTOR = TIPO_PRODUCTOR_F)
 
 df_mpio_agg = df %>% group_by(FECCORTE_F,COD_MPIO_INVERSION,SECTOR_F,TIPO_PRODUCTOR_F) %>%
   summarise(n_creditos = n(),
-            prom_operaciones = mean(No_OPERACIONES,na.rm=T),
-            prom_millones = mean(Millones,na.rm=T),
-            prom_subsidio = mean(Subsidio,na.rm=T)) %>%
+            prom_operaciones = sum(No_OPERACIONES,na.rm=T),
+            prom_millones = sum(Millones,na.rm=T),
+            prom_subsidio = sum(Subsidio,na.rm=T)) %>%
   rename(FECCORTE=FECCORTE_F,
          SECTOR = SECTOR_F,
          TIPO_PRODUCTOR = TIPO_PRODUCTOR_F)
 
 df_full_agg = df %>% group_by(FECCORTE_F,COD_DPT) %>%
   summarise(n_creditos = n(),
-            prom_operaciones = mean(No_OPERACIONES,na.rm=T),
-            prom_millones = mean(Millones,na.rm=T),
-            prom_subsidio = mean(Subsidio,na.rm=T)) %>%
+            prom_operaciones = sum(No_OPERACIONES,na.rm=T),
+            prom_millones = sum(Millones,na.rm=T),
+            prom_subsidio = sum(Subsidio,na.rm=T)) %>%
   rename(FECCORTE=FECCORTE_F)
 
 mynewspdf <- merge(deptos,df_depto_agg,by.x="DPTO",by.y="COD_DPT", duplicateGeoms = T)

@@ -93,12 +93,12 @@ data_clean = function(df){
            prop_credit = round(prom_millones/sum(prom_millones)*100,2),
            prop_subs = round(prom_subsidio/sum(prom_subsidio)*100,2)) %>% arrange(desc(prop_subs))
 
-  ### agrupacion por trimestre
-  # df = df %>% mutate(FECCORTE_F = lubridate::quarter(FECCORTE, with_year = TRUE),
-  #                    y = str_sub(FECCORTE_F,start = 1,end = 4),
-  #                    m = as.numeric(str_sub(FECCORTE_F,start = 6,end = 6)),
-  #                    m = m*3,
-  #                    FECCORTE_F = as.Date(paste(y,m,"01",sep="-")))
-  #
+  ## agrupacion por trimestre
+  df = df %>% mutate(FECCORTE_F = lubridate::quarter(FECCORTE, with_year = TRUE),
+                     y = str_sub(FECCORTE_F,start = 1,end = 4),
+                     m = as.numeric(str_sub(FECCORTE_F,start = 6,end = 6)),
+                     m = m*3,
+                     FECCORTE_F = as.Date(paste(y,m,"01",sep="-")))
+
   df
 }

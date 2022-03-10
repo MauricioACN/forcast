@@ -16,13 +16,14 @@ server <- function(input, output) {
 
     allDates <- unique(depto$FECCORTE)
     output$dateUI <- renderUI({
-      sliderInput(inputId = "dateSel",label = "Fecha",
-                  min = min(allDates),
-                  max = max(allDates),
-                  value = min(allDates),
-                  step = 30,
-                  timeFormat = "%b %y",
-                  animate = animationOptions(interval = 2000, loop = FALSE)
+
+      shinyWidgets::sliderTextInput(inputId = "dateSel",
+                                    label = "Trimestre",
+                                    width = "100%",
+                                    choices = allDates,
+                                    selected = allDates[1],
+                                    grid = FALSE,
+                                    animate = animationOptions(interval = 2000)
       )
     })
   })
@@ -41,7 +42,7 @@ server <- function(input, output) {
   filteredData <- reactive({
 
     date = req(input$dateSel)
-      if(date==17440){
+      if(date==min(depto$FECCORTE)){
       full.date = date
     }
     else{
@@ -149,5 +150,127 @@ server <- function(input, output) {
     fig
 
   })
+
+
+  observe({
+
+    alldeptos <- unique(depto$NOMBRE_DPT)
+    allsector <- unique(depto$SECTOR)
+    allproductor <- unique(depto$TIPO_PRODUCTOR)
+    allDates <- unique(depto$FECCORTE)
+
+    output$deptoUI <- renderUI({
+      list(
+      selectInput(inputId = "deptoSel",
+                  label = "Seleccione el o los departamentos a analizar:",
+                  choices = c("Todos",alldeptos),
+                  selected = "Todos",
+                  multiple = T),
+      selectInput(inputId = "sectorSel",
+                  label = "Seleccione el o los sectores a analizar:",
+                  choices = c("Todos",allsector),
+                  selected = "Todos",
+                  multiple = T),
+      selectInput(inputId = "prodSel",
+                  label = "Seleccione el o los tipos de productor a analizar:",
+                  choices = c("Todos",allproductor),
+                  selected = "Todos",
+                  multiple = T),
+      dateRangeInput(inputId = "rango_fecha",
+                     label = "Seleccione el periodo de tiempo a analizar:",
+                     start = min(allDates),
+                     end = max(allDates),
+                     min = min(allDates),
+                     max = max(allDates),format = "yyyy-mm",
+                     language = "es",weekstart = 1,startview = "year")
+    )
+    })
+  })
+
+  #filter data depending on selected date
+  date_filter <- reactive({
+      depto@data %>% dplyr::filter(FECCORTE >= as.Date(input$rango_fecha[1],"%Y-%m-01") & FECCORTE <= as.Date(input$rango_fecha[2],"%Y-%m-01"))
+  })
+
+  depto_filter <- reactive({
+    if (!"Todos" %in% input$deptoSel){
+      date_filter() %>% dplyr::filter(NOMBRE_DPT %in% input$deptoSel)
+    }
+    else{
+      date_filter()
+    }
+  })
+
+  sector_filter <- reactive({
+      if (!"Todos" %in% input$sectorSel){
+      depto_filter() %>% dplyr::filter(SECTOR %in% input$sectorSel)
+    }
+    else{
+      depto_filter()
+    }
+  })
+
+  productor_filter <- reactive({
+    if (!"Todos" %in% input$prodSel){
+      sector_filter() %>% dplyr::filter(TIPO_PRODUCTOR %in% input$prodSel)
+    }
+    else{
+      sector_filter()
+    }
+  })
+
+  data_part = reactive({
+    data_ = productor_filter()
+    data =  data_ %>%
+      dplyr::group_by(FECCORTE,SECTOR,NOMBRE_DPT) %>%
+      dplyr::summarise(Total_creditos = n(),
+                Total_operaciones = sum(prom_operaciones,na.rm=T),
+                Total_millones = sum(prom_millones,na.rm=T),
+                Total_subsidio = sum(prom_subsidio,na.rm=T))
+    df = data %>%
+      group_by(FECCORTE,SECTOR) %>%
+      summarise(Total = sum(Total_subsidio)) %>%
+      mutate(Participacion = round(Total/sum(Total)*100,2))
+    df
+  })
+
+    output$part_graf_depto <-renderPlotly({
+
+    df = data_part()
+    #updated plot_ly function call
+    fig <- plot_ly(data = df,x = ~FECCORTE, y = ~Total, type = 'bar', text = ~Participacion, name = ~SECTOR, color = ~SECTOR)
+    fig <- fig %>% layout(xaxis = list(tickvals = ~FECCORTE, tickformat = "%b %Y", tickfont = list(size = 12)), barmode = 'stack')
+    fig
+
+  })
+
+  data_hist <- reactive({
+    data_ = productor_filter()
+    data =  data_ %>%
+      dplyr::group_by(FECCORTE,SECTOR,NOMBRE_DPT) %>%
+      dplyr::summarise(Total_creditos = n(),
+                       Total_operaciones = sum(prom_operaciones,na.rm=T),
+                       Total_millones = sum(prom_millones,na.rm=T),
+                       Total_subsidio = sum(prom_subsidio,na.rm=T))
+    df = data %>%
+      group_by(FECCORTE,SECTOR) %>%
+      summarise(Total = sum(Total_subsidio))
+    # df = tidyr::spread(data = df,key = SECTOR,value = Total,fill = 0)
+    df
+  })
+
+
+  output$hist_graf_depto <- renderPlotly({
+
+    plot_ly(
+      data = data_hist(),
+      x = ~FECCORTE,
+      y = ~Total,
+      color = ~SECTOR,
+      type = "scatter",
+      mode = "lines+markers"
+    )
+
+    })
 
 }

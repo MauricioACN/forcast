@@ -23,7 +23,7 @@ ui <- dashboardPage(skin = 'blue',
                        tabPanel('Sobre los Gráficos', value = 'pg_graficos'),
                        tabPanel('Sobre los Modelos', value = 'pg_modelos'))),
         tabItem(tabName = 'cargue_dataset',
-                tabBox(id='tab_files', title = 'Análisis Departamento', width = '600px',height = '100%',
+                tabBox(id='cargue_dataset_1', title = 'Análisis Departamento', width = '600px',height = '100%',
                        tabPanel('Análisis General', value = 'cd_general',
       fluidRow(
         column(width = 12,
@@ -39,12 +39,21 @@ ui <- dashboardPage(skin = 'blue',
          column(width = 6,box(title = "Comportamiento por Departamento",leafletOutput("map", height = 740),width = 12,status = "primary",solidHeader = TRUE))
          )
       ),
-      tabPanel('Análisis Detallado', value = 'cd_detalle')
+      tabPanel('Análisis Detallado', value = 'cd_detalle',
+               fluidRow(column(width = 4,
+                               box(title = "Configuración",uiOutput("deptoUI"),width = 12,status = "primary",solidHeader = TRUE)
+                               ),
+                        column(width = 8,
+                               box(title = "Participación Sector por Monto de Subsidios",plotlyOutput("part_graf_depto"),width = 12,status = "primary",solidHeader = TRUE),
+                               box(title = "Serie Histórica Monto de Subsidios",plotlyOutput("hist_graf_depto"),width = 12,status = "primary",solidHeader = TRUE)
+                               )
       )
       ),
     tabItem(tabName = 'calculo_ratios'),
     tabItem(tabName = 'calculo_fw')
   )
+)
+)
 )
 )
 
