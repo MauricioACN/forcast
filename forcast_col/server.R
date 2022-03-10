@@ -4,6 +4,7 @@ library(leaflet)
 library(RColorBrewer)
 library(xts)
 library(rgdal)
+library(plotly)
 
 source("config.R")
 
@@ -122,6 +123,31 @@ server <- function(input, output) {
     value2 = sum(filteredData()$prom_subsidio)
     value = paste0(format(round(value2/value1*100,2),trim = TRUE), "%")
     valueBox(value = value,subtitle = "Proporción Créd. Subsidios",width = 2)
+  })
+
+  output$plot_sector <- renderPlotly({
+
+    prueba =  filteredData()@data %>% group_by(SECTOR) %>%
+      summarise(Total_creditos = sum(n_creditos,na.rm = T),
+                Total_Ope = sum(prom_operaciones,na.rm = T),
+                Total_Valor_Cred = sum(prom_millones,na.rm = T),
+                Total_Valor_Subs = sum(prom_subsidio, na.rm = T)) %>%
+      arrange(desc(Total_Valor_Subs)) %>%
+      as.data.frame()
+
+    prueba = prueba[c(1:5),]
+
+    prueba = prueba %>% arrange(desc(Total_Valor_Subs))
+
+    fig <- plotly::plot_ly(
+      x = prueba$SECTOR,
+      y = prueba$Total_Valor_Subs,
+      name = "Total Valor Subsidios",
+      type = "bar"
+    )
+
+    fig
+
   })
 
 }
