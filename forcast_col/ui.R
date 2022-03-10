@@ -1,30 +1,37 @@
 library(shiny)
 source("config.R")
+library(dashboardthemes)
+library(shinydashboard)
 
 # Define UI for application that draws a histogram
-shinyUI(#shiny UI
-  fluidPage(
-    leafletjs,
-    titlePanel("COVID 19  Case Development"),
-
-    sidebarPanel(width = 2,
-
-                 radioButtons(inputId = "mapType",
-                              label = "Select Map Type",
-                              choices = c("Markers", "Choropleth"),
-                              selected = "Choropleth",
-                              inline = TRUE),
-                 uiOutput("dateUI")
-
-    ),
-
-    mainPanel(width = 10,
-
-              leafletOutput("map", width = "35%", height = "500px"),
-              textOutput("texto")
-
-
+ui <- dashboardPage(skin = 'blue',
+    # leafletjs,
+    dashboardHeader(title = "Análisis de crédito"),
+    dashboardSidebar(disable = F,
+                     sidebarMenu(id = 'menu',
+                                 menuItem('Sobre la herramienta', tabName = 'panel_general', icon=shiny::icon('file')),
+                                 menuItem('Análisis Departamento', tabName = 'cargue_dataset', icon=shiny::icon('file-upload')),
+                                 menuItem('Análisis Municipio', tabName = 'calculo_ratios', icon=shiny::icon('cog')),
+                                 menuItem('Proyecciones', tabName = 'calculo_fw', icon=shiny::icon('cogs'))
+                     )),
+    dashboardBody(
+      fluidRow(
+        column(width = 12,valueBox(value = tags$p(textOutput("texto"), style = "font-size: 10%;"),
+                                   subtitle = "Fecha de Análisis",width = 2),
+               valueBox(value = 10,subtitle = "Cantidad de Créditos",width = 2),
+               valueBox(value = 10,subtitle = "Cantidad de Subsidios",width = 2),
+               valueBox(value = 20,subtitle = "Total Valor Créditos",width = 2),
+               valueBox(value = 20,subtitle = "Total Valor Créditos",width = 2),
+               valueBox(value = 20,subtitle = "Total Valor Créditos",width = 2))),
+       fluidRow(
+         box(title = "Configuración",uiOutput("dateUI")),
+         box(title = "Comportamiento por Departamento",
+             leafletOutput("map")
+             )
     )
   )
-
 )
+
+# width = 2,
+# uiOutput("varUI"),
+#

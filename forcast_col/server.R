@@ -8,7 +8,7 @@ library(rgdal)
 source("config.R")
 
 # Define server logic required to draw a histogram
-shinyServer(function(input, output) {
+server <- function(input, output) {
 
   #create slider input depending on data frequency
   observe({
@@ -26,6 +26,16 @@ shinyServer(function(input, output) {
     })
   })
 
+  observe({
+
+    allvars <- c("n_creditos","prom_operaciones","prom_millones","prom_subsidio")
+    output$varUI <- renderUI({
+      varSelectInput(inputId = "var",
+                  label = "Seleccione la variable de interes:",
+                  data = depto@data,selected = allvars[1])
+    })
+  })
+
   #filter data depending on selected date
   filteredData <- reactive({
 
@@ -38,31 +48,9 @@ shinyServer(function(input, output) {
       full.date <- as.character(monthStart(full.date))
     }
     new = depto[depto$FECCORTE == full.date,]
+    # var = depto[depto$FECCORTE == full.date,input$var]
     new
   })
-
-  #create the base leaflet map
-  # output$map <- renderLeaflet({
-  #
-  #   leaflet(depto) %>%
-  #     addTiles()  %>%
-  #     setView(lat =  4.1645646, lng = -71.7172296, zoom = 5) %>%
-  #
-  #     addPolygons(
-  #       layerId = ~DPTO,
-  #       fillColor = ~colorQuantile("YlOrRd", AREA)(AREA),
-  #       stroke = TRUE,
-  #       opacity = 1.0,
-  #       fillOpacity = 1,
-  #       color = "#444444",
-  #       smoothFactor = 0.5,
-  #       weight = 1
-  #     ) %>%
-  #
-  #     #need to specify the leaflet::addLegend function here to avoid ambiguity with the xts::addLegend function
-  #     leaflet::addLegend(pal = colorPalette, values = df_depto_agg$n_creditos, opacity = 0.9, title = "n_creditos", position = "bottomleft")
-  #
-  # })
 
   output$map <- renderLeaflet({
     leaflet(depto) %>%
@@ -85,46 +73,17 @@ shinyServer(function(input, output) {
                   weight = 1,
                   smoothFactor = 0.5,
                   opacity = 1.0, fillOpacity = 0.5,
-                  fillColor = ~colorQuantile("YlOrRd", AREA)(AREA),
+                  fillColor = ~colorQuantile("YlOrRd",AREA)(AREA),
                   highlightOptions = highlightOptions(color = "red", weight = 2,
-                                                       bringToFront = TRUE))
+                                                       bringToFront = TRUE),
+                  popup = state_popup)
 
-  #   depto$n_creditos <- filteredData()$n_creditos[match(depto$DPTO, filteredData()$COD_DPT)]
-  #
-  #   depto@data$LabelText <- paste0(
-  #     "<b>Country:</b> ", depto@data$NAME,"<br>",
-  #     "<b>n_creditos:</b> ", format(depto@data$n_creditos, nsmall=0, big.mark=","))
-  #
-  #   if(input$mapType == "Markers"){
-  #
-  #     leafletProxy("map", data = depto) %>%
-  #       clearMarkers() %>%
-  #       setShapeStyle(layerId = ~DPTO, fillColor = "lightgray") %>%
-  #       addCircleMarkers(lng = ~LON,
-  #                        lat = ~LAT,
-  #                        radius = ~log(n_creditos) * 2,
-  #                        weight = 1,
-  #                        opacity = 1,
-  #                        color = ~ifelse(n_creditos > 0, "black", "transparent"),
-  #                        fillColor = ~ifelse(n_creditos > 0, colorPalette(n_creditos), "transparent"),
-  #                        fillOpacity = 0.8,
-  #                        label = ~lapply(LabelText, htmltools::HTML))
-  #
-  #   }else if(input$mapType == "Choropleth"){
-  #
-  #     leafletProxy("map",
-  #                  data = depto) %>%
-  #       clearMarkers() %>%
-  #       setShapeStyle(layerId = ~DPTO, fillColor = ~ifelse(n_creditos > 0, colorPalette(n_creditos), "lightgray"), label = depto$LabelText)
-  #
-  #   }
   })
-  #
+
   output$texto <- renderText({
 
-    # dim(filteredData())
-    input$dateSel
+    paste0(filteredData()$FECCORTE[1])
 
   })
 
-})
+}
