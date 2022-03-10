@@ -1,3 +1,10 @@
+#load R packages
+library(shiny)
+library(leaflet)
+library(RColorBrewer)
+library(xts)
+library(rgdal)
+
 #helper function for choropleth animation
 setShapeStyle <- function( map, data = getMapData(map), layerId,
                            stroke = NULL, color = NULL,
@@ -67,34 +74,13 @@ window.LeafletWidget.methods.setLabel = function(category, layerId, label){
   ))
 )
 
+monthStart <- function(x) {
+  x <- as.POSIXlt(x)
+  x$mday <- 1
+  as.Date(x)
+}
 
-#you only have to do this once!
-#download.file("http://thematicmapping.org/downloads/TM_WORLD_BORDERS_SIMPL-0.3.zip" , destfile="world_shape_file.zip")
-#system("unzip world_shape_file.zip")
-
-#load spatial data
-# world_spdf <- readOGR(
-#   dsn = getwd() ,
-#   layer = "TM_WORLD_BORDERS_SIMPL-0.3",
-#   verbose = FALSE
-# )
-
-# #load covid data set
-# covidData <- read.csv("https://covid19.who.int/WHO-COVID-19-global-data.csv", fileEncoding="UTF-8-BOM", stringsAsFactors = FALSE)
-# covidData <- na.omit(covidData)
-# covidData$Date_reported <- as.Date(covidData$Date_reported)
-#
-# #select a certain date
-# selectedData <- covidData[covidData$Date_reported == "2020-07-15", ]
-#
-# #match cases and spatial data via ISO2/Country Code
-# world_spdf$Cases <- selectedData$Cumulative_cases[match(world_spdf$ISO2, selectedData$Country_code)]
-
-# #create label texts
-# world_spdf@data$LabelText <- paste0(
-#   "<b>Country:</b> ", world_spdf@data$NAME,"<br>",
-#   "<b>Cases:</b> ", format(world_spdf@data$Cases, nsmall=0, big.mark=","))
-
-# #define colorpalette for chart legend
-# paletteBins <- c(0, 50000, 100000, 250000, 500000, 1000000, 2500000, 5000000, 10000000)
-# colorPalette <- colorBin(palette = "YlOrBr", domain = df_full_agg$n_creditos, na.color = "transparent", bins = paletteBins)
+depto = readRDS("data_clean/deptos.rds")
+mpio = readRDS("data_clean/mpio.rds")
+df_mpio_agg = readRDS("data_clean/df_mpio_agg.rds")
+df_depto_agg = readRDS("data_clean/df_depto_agg.rds")

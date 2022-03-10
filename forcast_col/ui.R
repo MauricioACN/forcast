@@ -1,29 +1,30 @@
-#
-# This is the user-interface definition of a Shiny web application. You can
-# run the application by clicking 'Run App' above.
-#
-# Find out more about building applications with Shiny here:
-#
-#    http://shiny.rstudio.com/
-#
-
 library(shiny)
+source("config.R")
 
 # Define UI for application that draws a histogram
-shinyUI(fluidPage(
-  # leafletjs,
-  titlePanel("COVID 19  Case Development"),
+shinyUI(#shiny UI
+  fluidPage(
+    leafletjs,
+    titlePanel("COVID 19  Case Development"),
 
-  sidebarPanel(width = 2,
+    sidebarPanel(width = 2,
 
-               uiOutput("dateUI")
+                 radioButtons(inputId = "mapType",
+                              label = "Select Map Type",
+                              choices = c("Markers", "Choropleth"),
+                              selected = "Choropleth",
+                              inline = TRUE),
+                 uiOutput("dateUI")
 
-  ),
+    ),
 
-  mainPanel(width = 10,
+    mainPanel(width = 10,
 
-            leafletOutput("map", width = "100%", height = "500px")
+              leafletOutput("map", width = "35%", height = "500px"),
+              textOutput("texto")
 
+
+    )
   )
-)
+
 )
