@@ -82,8 +82,39 @@ server <- function(input, output) {
 
   output$texto <- renderText({
 
-    paste0(filteredData()$FECCORTE[1])
+    paste0(unique(filteredData()$FECCORTE))
 
+  })
+
+  output$value1 <- renderValueBox({
+    valueBox(value = textOutput("texto"),
+             subtitle = "Fecha de Análisis",width = 2)
+  })
+
+  output$value2 <- renderValueBox({
+
+    value = sum(filteredData()$n_creditos)
+    valueBox(value = value,subtitle = "Cantidad de Créditos")
+  })
+
+  output$value3 <- renderValueBox({
+    valueBox(value = textOutput("texto"),
+             subtitle = "Fecha de Análisis")
+  })
+
+  output$value4 <- renderValueBox({
+    valueBox(value = textOutput("texto"),
+             subtitle = "Fecha de Análisis",width = 2)
+  })
+
+  output$value5 <- renderValueBox({
+    valueBox(value = textOutput("texto"),
+             subtitle = "Fecha de Análisis",width = 2)
+  })
+
+  output$value6 <- renderValueBox({
+    valueBox(value = textOutput("texto"),
+             subtitle = "Fecha de Análisis",width = 2)
   })
 
 }

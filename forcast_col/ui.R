@@ -16,9 +16,9 @@ ui <- dashboardPage(skin = 'blue',
                      )),
     dashboardBody(
       fluidRow(
-        column(width = 12,valueBox(value = tags$p(textOutput("texto"), style = "font-size: 10%;"),
-                                   subtitle = "Fecha de Análisis",width = 2),
-               valueBox(value = 10,subtitle = "Cantidad de Créditos",width = 2),
+        column(width = 12,
+               valueBoxOutput("value1",width = 2),
+               valueBoxOutput("value2",width = 2),
                valueBox(value = 10,subtitle = "Cantidad de Subsidios",width = 2),
                valueBox(value = 20,subtitle = "Total Valor Créditos",width = 2),
                valueBox(value = 20,subtitle = "Total Valor Créditos",width = 2),
