@@ -98,8 +98,9 @@ server <- function(input, output) {
   })
 
   output$value3 <- renderValueBox({
-    valueBox(value = textOutput("texto"),
-             subtitle = "Fecha de Análisis")
+
+    value = length(filteredData()$prom_subsidio[filteredData()$prom_subsidio>0])
+    valueBox(value = value,subtitle = "Cantidad de Subsidios")
   })
 
   output$value4 <- renderValueBox({
