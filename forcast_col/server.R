@@ -6,12 +6,16 @@ library(xts)
 library(rgdal)
 
 source("config.R")
+# import clean data
+depto_data = readRDS("data_clean/df_map_depto.rds")
+mpio_data = readRDS("data_clean/df_map_mpio.rds")
+
 # Define server logic required to draw a histogram
 shinyServer(function(input, output) {
 
   #create slider input depending on data frequency
 
-    allDates <- unique(df_full_agg$FECCORTE)
+    allDates <- unique(depto_data$FECCORTE)
     eligibleDates <- allDates[xts::endpoints(allDates)]
 
     output$dateUI <- renderUI({
@@ -19,18 +23,18 @@ shinyServer(function(input, output) {
                   min = min(eligibleDates),
                   max = max(eligibleDates),
                   value = min(eligibleDates),
-                  step = 3,
-                  timeFormat = "%d %b %y",
+                  timeFormat = "%b %Y",
+                  step = 30,
                   animate = animationOptions(interval = 500, loop = FALSE)
       )
   })
-#
-#   #filter data depending on selected date
-#   filteredData <- reactive({
-#     req(input$dateSel)
-#     df_full_agg[df_full_agg$FECCORTE == input$dateSel, ]
-#   })
-#
+
+  #filter data depending on selected date
+  filteredData <- reactive({
+    req(input$dateSel)
+    depto_data[depto_data$FECCORTE == input$dateSel, ]
+  })
+
 #   #create the base leaflet map
 #   output$map <- renderLeaflet({
 #     map = leaflet(deptos4)
