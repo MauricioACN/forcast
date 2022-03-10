@@ -20,7 +20,7 @@ ui <- dashboardPage(skin = 'blue',
                valueBoxOutput("value1",width = 2),
                valueBoxOutput("value2",width = 2),
                valueBoxOutput("value3",width = 2),
-               valueBox(value = 20,subtitle = "Total Valor Créditos",width = 2),
+               valueBoxOutput("value4",width = 2),
                valueBox(value = 20,subtitle = "Total Valor Créditos",width = 2),
                valueBox(value = 20,subtitle = "Total Valor Créditos",width = 2))),
        fluidRow(
