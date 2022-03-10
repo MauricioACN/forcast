@@ -23,12 +23,12 @@ ui <- dashboardPage(skin = 'blue',
                valueBoxOutput("value4",width = 2),
                valueBoxOutput("value5",width = 2),
                valueBoxOutput("value6",width = 2))),
-       fluidRow(
+       fluidRow(column(width = 12,
          box(title = "Configuración",uiOutput("dateUI")),
          box(title = "Comportamiento por Departamento",
              leafletOutput("map")
              )
-    )
+    ))
   )
 )
 

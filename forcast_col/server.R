@@ -121,7 +121,7 @@ server <- function(input, output) {
     value1 = sum(filteredData()$prom_millones)
     value2 = sum(filteredData()$prom_subsidio)
     value = paste0(format(round(value2/value1*100,2),trim = TRUE), "%")
-    valueBox(value = value,subtitle = "Proporción Subsidios",width = 2)
+    valueBox(value = value,subtitle = "Proporción Créd. Subsidios",width = 2)
   })
 
 }
