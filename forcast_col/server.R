@@ -254,7 +254,7 @@ server <- function(input, output) {
                        Total_subsidio = sum(prom_subsidio,na.rm=T))
     df = data %>%
       group_by(FECCORTE,SECTOR) %>%
-      summarise(Total = sum(Total_subsidio))
+      summarise(Total = sum(Total_subsidio,na.rm = T))
     # df = tidyr::spread(data = df,key = SECTOR,value = Total,fill = 0)
     df
   })
@@ -262,15 +262,30 @@ server <- function(input, output) {
 
   output$hist_graf_depto <- renderPlotly({
 
-    plot_ly(
-      data = data_hist(),
-      x = ~FECCORTE,
-      y = ~Total,
-      color = ~SECTOR,
-      type = "scatter",
-      mode = "lines+markers"
-    )
+  datos = data_hist()
+  datos$Total = datos$Total/1000
+  sectors = length(unique(datos$SECTOR))
 
-    })
+  if(sectors>1){
+
+    p <- datos %>%
+      ggplot(aes(x=FECCORTE, y=Total, group=SECTOR, color=SECTOR))+
+      geom_line()+
+      xlab("Fecha") + ylab("Subsidios en Miles de Millones")
+      theme_classic()
+  }
+  else{
+    p <- datos %>%
+      ggplot(aes(x=FECCORTE, y=Total))+
+      geom_line()+
+      xlab("Fecha") + ylab("Subsidios en Miles de Millones")
+    theme_classic()
+  }
+
+  plotly::ggplotly(p)
+
+  })
 
 }
+
+
