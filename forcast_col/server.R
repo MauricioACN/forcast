@@ -96,6 +96,7 @@ server <- function(input, output) {
   output$value2 <- renderValueBox({
 
     value = sum(filteredData()$n_creditos)
+    value = scales::number(value,big.mark = ",")
     valueBox(value = value,subtitle = "Cantidad de Créditos")
   })
 
@@ -107,14 +108,14 @@ server <- function(input, output) {
 
   output$value4 <- renderValueBox({
     value = sum(filteredData()$prom_millones)
-    value = paste0("$",format(round(value/1e6, 0), trim = TRUE), " M")
+    value = paste0(scales::dollar(round(value/1e6,0))," MM")
     valueBox(value = value,subtitle = "Total Valor Créditos")
   })
 
   output$value5 <- renderValueBox({
 
     value = sum(filteredData()$prom_subsidio)
-    value = paste0("$",format(round(value/1e6, 0), trim = TRUE), " M")
+    value = paste0(scales::dollar(round(value/1e6,0))," MM")
     valueBox(value = value,subtitle = "Total Valor Subsidios",width = 2)
 
   })
