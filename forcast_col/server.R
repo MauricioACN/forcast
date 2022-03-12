@@ -272,15 +272,17 @@ server <- function(input, output) {
     p <- datos %>%
       ggplot(aes(x=FECCORTE, y=Total, group=SECTOR, color=SECTOR))+
       geom_line()+
-      xlab("Fecha") + ylab("Subsidios en Miles de Millones")
+      xlab("Fecha") + ylab("Subsidios en Miles de Millones")+
+      scale_y_continuous(labels=scales::dollar_format())+
       theme_classic()
   }
   else{
     p <- datos %>%
       ggplot(aes(x=FECCORTE, y=Total))+
       geom_line()+
-      xlab("Fecha") + ylab("Subsidios en Miles de Millones")
-    theme_classic()
+      xlab("Fecha") + ylab("Subsidios en Miles de Millones")+
+      scale_y_continuous(labels=scales::dollar_format())+
+      theme_classic()
   }
 
   plotly::ggplotly(p)
