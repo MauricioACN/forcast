@@ -28,16 +28,6 @@ server <- function(input, output) {
     })
   })
 
-  observe({
-
-    allvars <- c("n_creditos","prom_operaciones","prom_millones","prom_subsidio")
-    output$varUI <- renderUI({
-      varSelectInput(inputId = "var",
-                  label = "Seleccione la variable de interes:",
-                  data = depto@data,selected = allvars[1])
-    })
-  })
-
   #filter data depending on selected date
   filteredData <- reactive({
 
@@ -54,20 +44,48 @@ server <- function(input, output) {
     new
   })
 
+  mapa_data <- reactive({
+
+    date = req(input$dateSel)
+    if(date==min(df_depto_agg$FECCORTE)){
+      full.date = date
+    }
+    else{
+      full.date <- as.POSIXct(date, tz="GMT")
+      full.date <- as.character(monthStart(full.date))
+    }
+    new = df_depto_agg[df_depto_agg$FECCORTE == full.date,]
+    # var = depto[depto$FECCORTE == full.date,input$var]
+    new
+  })
+
   output$map <- renderLeaflet({
-    leaflet(depto) %>%
+    leaflet(df_depto_agg) %>%
       addTiles() %>%
-      setView(lat =  4.1645646, lng = -71.7172296, zoom = 5) #%>%
+      setView(lat =  4.1645646, lng = -71.7172296, zoom = 5) %>%
+      leaflet::addLegend(pal = colorPalette, values = df_depto_agg$total_creditos, opacity = 0.9, title = "Valor de Créditos (MM)", position = "bottomleft")
 
   })
 
   #prepare data depending on selected date and draw either markers or update polygons depending on the selected map type
   observe({
 
-    data = filteredData()
+    data = mapa_data()
 
-    state_popup <- paste0("<strong>Country: </strong>",
-                          data$NOMBRE_DPT)
+    total_sub = ifelse(data$total_subsidio>0,scales::dollar(data$total_subsidio,suffix = " MM"),"Sin Subsidio")
+    part_sub = ifelse(data$total_subsidio>0,scales::percent(data$part_sub_cre),"Sin Subsidio")
+    sector_sub = ifelse(data$porce_sect_sub>0,paste0(data$SECTOR_influyente," (",scales::percent(data$porce_sect_sub),")"),"Sin Subsidio")
+    prod_sub = ifelse(data$porce_prod_sub>0,paste0(data$productor_influyente," (",scales::percent(data$porce_prod_sub),")"),"Sin Subsidio")
+
+    data@data$state_popup <- paste0("<strong>Depto: </strong>",data$NOMBRE_DPT,"<br>",
+                          "<strong>N° Créditos: </strong>",scales::number(data$no_creditos,big.mark = ","),"<br>",
+                          "<strong>N° Operaciones: </strong>",scales::number(data$total_ope,big.mark = ","),"<br>",
+                          "<strong>Total Valor Créditos: </strong>",scales::dollar(data$total_creditos,suffix = " MM"),"<br>",
+                          "<strong>Total Valor Subsidios: </strong>",total_sub,"<br>",
+                          "<strong>Participación Subsidios: </strong>",part_sub,"<br>",
+                          "<strong>Sector Más Subsidiado: </strong>",sector_sub,"<br>",
+                          "<strong>Prod. Más Subsidiado: </strong>",prod_sub
+                          )
 
     leafletProxy("map", data = data) %>%
       clearShapes() %>%
@@ -75,10 +93,11 @@ server <- function(input, output) {
                   weight = 1,
                   smoothFactor = 0.5,
                   opacity = 1.0, fillOpacity = 0.5,
-                  fillColor = ~colorQuantile("YlOrRd",AREA)(AREA),
+                  fillColor = ~colorQuantile("YlOrRd", total_creditos)(total_creditos),
                   highlightOptions = highlightOptions(color = "red", weight = 2,
                                                        bringToFront = TRUE),
-                  popup = state_popup)
+                  label = ~lapply(state_popup,htmltools::HTML)
+                  )
 
   })
 

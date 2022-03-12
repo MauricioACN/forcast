@@ -80,7 +80,17 @@ monthStart <- function(x) {
   as.Date(x)
 }
 
+
 depto = readRDS("data_clean/deptos.rds")
-mpio = readRDS("data_clean/mpio.rds")
-df_mpio_agg = readRDS("data_clean/df_mpio_agg.rds")
-df_depto_agg = readRDS("data_clean/df_depto_agg.rds")
+
+df_depto_agg = readRDS("data_clean/deptos_mapa.rds")
+# df_depto_agg@data$color_subsidio =
+# mpio = readRDS("data_clean/mpio.rds")
+# df_mpio_agg = readRDS("data_clean/df_mpio_agg.rds")
+
+#define colorpalette for chart legend
+paletteBins <- c(0, 1000, 2000, 3000, 5000, 10000, 30000, 100000, 500000)
+colorPalette <- colorBin(palette = "YlOrBr", domain = unique(df_depto_agg$total_creditos), na.color = "transparent", bins = paletteBins)
+
+
+

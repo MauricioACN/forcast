@@ -100,5 +100,7 @@ data_clean = function(df){
                      m = m*3,
                      FECCORTE_F = as.Date(paste(y,m,"01",sep="-")))
 
+  df = df %>% mutate(prom_porc_sub = round(Subsidio/Millones,2))
+
   df
 }
