@@ -227,6 +227,7 @@ server <- function(input, output) {
                 Total_operaciones = sum(prom_operaciones,na.rm=T),
                 Total_millones = sum(prom_millones,na.rm=T),
                 Total_subsidio = sum(prom_subsidio,na.rm=T))
+
     df = data %>%
       group_by(FECCORTE,SECTOR) %>%
       summarise(Total = sum(Total_subsidio)) %>%

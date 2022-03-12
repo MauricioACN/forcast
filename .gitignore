@@ -41,3 +41,5 @@ vignettes/*.pdf
 # databases
 /data
 /forcast_col/data_clean
+/forcast_col/rsconnect
+
