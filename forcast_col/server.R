@@ -9,7 +9,7 @@ library(plotly)
 source("config.R")
 
 # Define server logic required to draw a histogram
-server <- function(input, output) {
+server <- function(input, output,session) {
 
   #create slider input depending on data frequency
   observe({
@@ -308,6 +308,342 @@ server <- function(input, output) {
   plotly::ggplotly(p)
 
   })
+
+  # df_mpio_agg
+
+  ################################## seccion de municipios ##################################
+
+  #create slider input depending on data frequency
+  observe({
+
+    allDates_mp <- unique(mpio$FECCORTE)
+    output$mpioUI <- renderUI({
+
+      list(
+      shinyWidgets::sliderTextInput(inputId = "dateSel_mp",
+                                    label = "Trimestre",
+                                    width = "100%",
+                                    choices = allDates_mp,
+                                    selected = allDates_mp[1],
+                                    grid = FALSE,
+                                    animate = animationOptions(interval = 2000)),
+      shiny::selectInput(inputId = "depto_mpio_sel_1",
+                         label = "Seleccion el Departamento a Analizar: ",
+                         multiple = F,
+                         choices = unique(mpio$NOMBRE_DPT),
+                         selected = unique(mpio$NOMBRE_DPT)[1])
+      )
+    })
+  })
+
+  #filter data depending on selected date
+  filteredData_mp <- reactive({
+
+    date_mp = req(input$dateSel_mp)
+    if(date_mp==min(mpio$FECCORTE)){
+      full.date_mp = date_mp
+    }
+    else{
+      full.date_mp <- as.POSIXct(date_mp, tz="GMT")
+      full.date_mp <- as.character(monthStart(full.date_mp))
+    }
+    new_mp = mpio[mpio$FECCORTE == full.date_mp,]
+    new_mp
+  })
+
+  mapa_data_mp <- reactive({
+
+    date_mp_1 = req(input$dateSel_mp)
+    if(date_mp_1==min(df_mpio_agg$FECCORTE)){
+      full.date_mp1 = date_mp_1
+    }
+    else{
+      full.date_mp1 <- as.POSIXct(date_mp_1, tz="GMT")
+      full.date_mp1 <- as.character(monthStart(full.date_mp1))
+    }
+
+    cod_dept = unique(df_mpio_agg$DPTO[df_mpio_agg$NOMBRE_DPT==input$depto_mpio_sel_1])
+    new_mp1 = df_mpio_agg[(df_mpio_agg$FECCORTE == full.date_mp1)&
+                            (df_mpio_agg$DPTO == cod_dept),]
+    new_mp1
+  })
+
+  output$map_mp <- renderLeaflet({
+    leaflet(df_mpio_agg) %>%
+      addTiles() %>%
+      setView(lat =  4.1645646, lng = -71.7172296, zoom = 5) %>%
+      leaflet::addLegend(pal = colorPalette_mpio, values = df_mpio_agg$total_creditos, opacity = 0.9, title = "Valor de Créditos (MM)", position = "bottomleft")
+
+  })
+
+  #prepare data depending on selected date and draw either markers or update polygons depending on the selected map type
+  observe({
+
+    data_mp = mapa_data_mp()
+
+    total_sub = ifelse(data_mp$total_subsidio>0,scales::dollar(data_mp$total_subsidio,suffix = " MM"),"Sin Subsidio")
+    part_sub = ifelse(data_mp$total_subsidio>0,scales::percent(data_mp$part_sub_cre),"Sin Subsidio")
+    sector_sub = ifelse(data_mp$porce_sect_sub>0,paste0(data_mp$SECTOR_influyente," (",scales::percent(data_mp$porce_sect_sub),")"),"Sin Subsidio")
+    prod_sub = ifelse(data_mp$porce_prod_sub>0,paste0(data_mp$productor_influyente," (",scales::percent(data_mp$porce_prod_sub),")"),"Sin Subsidio")
+
+    data_mp@data$state_popup <- paste0("<strong>Depto: </strong>",data_mp$NOMBRE_MPI,"<br>",
+                                    "<strong>N° Créditos: </strong>",scales::number(data_mp$no_creditos,big.mark = ","),"<br>",
+                                    "<strong>N° Operaciones: </strong>",scales::number(data_mp$total_ope,big.mark = ","),"<br>",
+                                    "<strong>Total Valor Créditos: </strong>",scales::dollar(data_mp$total_creditos,suffix = " MM"),"<br>",
+                                    "<strong>Total Valor Subsidios: </strong>",total_sub,"<br>",
+                                    "<strong>Participación Subsidios: </strong>",part_sub,"<br>",
+                                    "<strong>Sector Más Subsidiado: </strong>",sector_sub,"<br>",
+                                    "<strong>Prod. Más Subsidiado: </strong>",prod_sub
+    )
+
+    leafletProxy("map_mp", data = data_mp) %>%
+      clearShapes() %>%
+      addPolygons(color = "#444444",
+                  weight = 1,
+                  smoothFactor = 0.5,
+                  opacity = 1.0, fillOpacity = 0.5,
+                  fillColor = ~colorQuantile("YlOrRd", total_creditos)(total_creditos),
+                  highlightOptions = highlightOptions(color = "red", weight = 2,
+                                                      bringToFront = TRUE),
+                  label = ~lapply(state_popup,htmltools::HTML)
+      )
+
+  })
+
+  output$texto_mp <- renderText({
+
+    paste0(unique(filteredData_mp()$FECCORTE))
+
+  })
+
+  output$value7 <- renderValueBox({
+    valueBox(value = textOutput("texto_mp"),
+             subtitle = "Fecha de Análisis",width = 2)
+  })
+
+  output$value8 <- renderValueBox({
+
+    value = sum(filteredData_mp()$n_creditos)
+    value = scales::number(value,big.mark = ",")
+    valueBox(value = value,subtitle = "Cantidad de Créditos")
+  })
+
+  output$value9 <- renderValueBox({
+
+    value = length(filteredData_mp()$prom_subsidio[filteredData_mp()$prom_subsidio>0])
+    valueBox(value = value,subtitle = "Cantidad de Subsidios")
+  })
+
+  output$value10 <- renderValueBox({
+    value = sum(filteredData_mp()$prom_millones)
+    value = paste0(scales::dollar(round(value/1e6,0))," MM")
+    valueBox(value = value,subtitle = "Total Valor Créditos")
+  })
+
+  output$value11 <- renderValueBox({
+
+    value = sum(filteredData_mp()$prom_subsidio)
+    value = paste0(scales::dollar(round(value/1e6,0))," MM")
+    valueBox(value = value,subtitle = "Total Valor Subsidios",width = 2)
+
+  })
+
+  output$value12 <- renderValueBox({
+    value1 = sum(filteredData_mp()$prom_millones)
+    value2 = sum(filteredData_mp()$prom_subsidio)
+    value = paste0(format(round(value2/value1*100,2),trim = TRUE), "%")
+    valueBox(value = value,subtitle = "Proporción Créd. Subsidios",width = 2)
+  })
+
+  output$plot_sector_mp <- renderPlotly({
+
+    prueba =  filteredData_mp()@data %>% group_by(SECTOR) %>%
+      summarise(Total_creditos = sum(n_creditos,na.rm = T),
+                Total_Ope = sum(prom_operaciones,na.rm = T),
+                Total_Valor_Cred = sum(prom_millones,na.rm = T),
+                Total_Valor_Subs = sum(prom_subsidio, na.rm = T)) %>%
+      arrange(desc(Total_Valor_Subs)) %>%
+      as.data.frame()
+
+    prueba = prueba[c(1:5),]
+
+    prueba = prueba %>% arrange(desc(Total_Valor_Subs))
+
+    fig <- plotly::plot_ly(
+      x = prueba$SECTOR,
+      y = prueba$Total_Valor_Subs,
+      name = "Total Valor Subsidios",
+      type = "bar"
+    )
+
+    fig
+
+  })
+
+  output$standarUI <- renderUI({
+
+    list(
+      dateRangeInput(inputId = "mpio_rango_fecha",
+                     label = "Seleccione el periodo de tiempo a analizar:",
+                     start = min(mpio@data$FECCORTE),
+                     end = max(mpio@data$FECCORTE),
+                     min = min(mpio@data$FECCORTE),
+                     max = max(mpio@data$FECCORTE),format = "yyyy-mm",
+                     language = "es",weekstart = 1,startview = "year"),
+    selectInput(inputId = "mpio_depto_Sel",
+                label = "Seleccione el o los departamentos a analizar:",
+                "",multiple = T),
+    selectInput(inputId = "mpioSel",
+                label = "Seleccione el o los departamentos a analizar:",
+                "",multiple = T),
+    selectInput(inputId = "mpio_sectorSel",
+                label = "Seleccione el o los sectores a analizar:",
+                "",multiple = T),
+    selectInput(inputId = "mpio_prodSel",
+                label = "Seleccione el o los tipos de productor a analizar:",
+                "",multiple = T)
+    )
+  })
+
+  #filter data depending on selected date
+  mpio_date_filter <- reactive({
+    mpio@data %>% dplyr::filter(FECCORTE >= as.Date(input$mpio_rango_fecha[1],"%Y-%m-01") & FECCORTE <= as.Date(input$mpio_rango_fecha[2],"%Y-%m-01"))
+  })
+
+  observeEvent(input$mpio_rango_fecha,{
+    updateSelectInput(session = session,
+                      inputId = "mpio_depto_Sel",
+                      choices = c("Todos",unique(mpio_date_filter()$NOMBRE_DPT)),
+                      selected = "Todos")
+  })
+
+  depto_mpio_filter <- reactive({
+    if (!"Todos" %in% input$mpio_depto_Sel){
+      mpio_date_filter() %>% dplyr::filter(NOMBRE_DPT %in% input$mpio_depto_Sel)
+    }
+    else{
+      mpio_date_filter()
+    }
+  })
+
+  observeEvent(input$mpio_depto_Sel,{
+          updateSelectInput(session = session,
+                            inputId = "mpioSel",
+                            choices = c("Todos",unique(depto_mpio_filter()$NOMBRE_MPI)),
+                            selected = "Todos")
+  })
+
+  mpio_filter <- reactive({
+    if (!"Todos" %in% input$mpioSel){
+      depto_mpio_filter() %>% dplyr::filter(NOMBRE_DPT %in% input$mpioSel)
+    }
+    else{
+      depto_mpio_filter()
+    }
+  })
+
+  observeEvent(input$mpio_depto_Sel,{
+    updateSelectInput(session = session,
+                      inputId = "mpio_sectorSel",
+                      choices = c("Todos",unique(mpio_filter()$SECTOR)),
+                      selected = "Todos")
+  })
+
+  mpio_sector_filter <- reactive({
+    if (!"Todos" %in% input$mpio_sectorSel){
+      mpio_filter() %>% dplyr::filter(SECTOR %in% input$mpio_sectorSel)
+    }
+    else{
+      mpio_filter()
+    }
+  })
+
+  observeEvent(input$mpio_sectorSel,{
+    updateSelectInput(session = session,
+                      inputId = "mpio_prodSel",
+                      choices = c("Todos",unique(mpio_sector_filter()$TIPO_PRODUCTOR)),
+                      selected = "Todos")
+  })
+
+  mpio_productor_filter <- reactive({
+    if (!"Todos" %in% input$mpio_prodSel){
+      mpio_sector_filter() %>% dplyr::filter(TIPO_PRODUCTOR %in% input$mpio_prodSel)
+    }
+    else{
+      mpio_sector_filter()
+    }
+  })
+
+  mpio_data_part <- reactive({
+    data_ = mpio_productor_filter()
+    data =  data_ %>%
+      dplyr::group_by(FECCORTE,SECTOR,NOMBRE_MPI) %>%
+      dplyr::summarise(Total_creditos = n(),
+                       Total_operaciones = sum(prom_operaciones,na.rm=T),
+                       Total_millones = sum(prom_millones,na.rm=T),
+                       Total_subsidio = sum(prom_subsidio,na.rm=T))
+
+    df = data %>%
+      group_by(FECCORTE,SECTOR) %>%
+      summarise(Total = sum(Total_subsidio)) %>%
+      mutate(Participacion = round(Total/sum(Total)*100,2))
+    df
+  })
+
+  output$part_graf_mpio <-renderPlotly({
+
+    df = mpio_data_part()
+    #updated plot_ly function call
+    fig <- plot_ly(data = df,x = ~FECCORTE, y = ~Total, type = 'bar', text = ~Participacion, name = ~SECTOR, color = ~SECTOR)
+    fig <- fig %>% layout(xaxis = list(tickvals = ~FECCORTE, tickformat = "%b %Y", tickfont = list(size = 12)), barmode = 'stack')
+    fig
+
+  })
+
+  data_hist_mpio <- reactive({
+    data_ = mpio_productor_filter()
+    data =  data_ %>%
+      dplyr::group_by(FECCORTE,SECTOR,NOMBRE_DPT) %>%
+      dplyr::summarise(Total_creditos = n(),
+                       Total_operaciones = sum(prom_operaciones,na.rm=T),
+                       Total_millones = sum(prom_millones,na.rm=T),
+                       Total_subsidio = sum(prom_subsidio,na.rm=T))
+    df = data %>%
+      group_by(FECCORTE,SECTOR) %>%
+      summarise(Total = sum(Total_subsidio,na.rm = T))
+    # df = tidyr::spread(data = df,key = SECTOR,value = Total,fill = 0)
+    df
+  })
+
+
+  output$hist_graf_mpio <- renderPlotly({
+
+    datos = data_hist_mpio()
+    datos$Total = datos$Total/1000
+    sectors = length(unique(datos$SECTOR))
+
+    if(sectors>1){
+
+      p <- datos %>%
+        ggplot(aes(x=FECCORTE, y=Total, group=SECTOR, color=SECTOR))+
+        geom_line()+
+        xlab("Fecha") + ylab("Subsidios en Miles de Millones")+
+        scale_y_continuous(labels=scales::dollar_format())+
+        theme_classic()
+    }
+    else{
+      p <- datos %>%
+        ggplot(aes(x=FECCORTE, y=Total))+
+        geom_line()+
+        xlab("Fecha") + ylab("Subsidios en Miles de Millones")+
+        scale_y_continuous(labels=scales::dollar_format())+
+        theme_classic()
+    }
+
+    plotly::ggplotly(p)
+
+  })
+
 
 }
 

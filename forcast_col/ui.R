@@ -47,13 +47,42 @@ ui <- dashboardPage(skin = 'blue',
                                box(title = "Participación Sector por Monto de Subsidios",plotlyOutput("part_graf_depto"),width = 12,status = "primary",solidHeader = TRUE),
                                box(title = "Serie Histórica Monto de Subsidios",plotlyOutput("hist_graf_depto"),width = 12,status = "primary",solidHeader = TRUE)
                                )
+                        )
+               )
       )
       ),
-    tabItem(tabName = 'calculo_ratios'),
+    tabItem(tabName = 'calculo_ratios',
+            tabBox(id='ct_1', title = 'Análisis Municipio', width = '600px',height = '100%',
+                   tabPanel(title = "Análisis General",value = 'cr_general',
+                            fluidRow(
+                              column(width = 12,
+                                     valueBoxOutput("value7",width = 2),
+                                     valueBoxOutput("value8",width = 2),
+                                     valueBoxOutput("value9",width = 2),
+                                     valueBoxOutput("value10",width = 2),
+                                     valueBoxOutput("value11",width = 2),
+                                     valueBoxOutput("value12",width = 2))),
+                            fluidRow(column(width = 6,
+                                            box(title = "Configuración",uiOutput("mpioUI"),width = 12,status = "primary",solidHeader = TRUE),
+                                            box(title = "Participación por Sector en Subsidios - Top 5",plotlyOutput("plot_sector_mp",height = 550),width = 12,status = "primary",solidHeader = TRUE)
+                                            ),
+                                     column(width = 6,box(title = "Comportamiento por Departamento",leafletOutput("map_mp", height = 740),width = 12,status = "primary",solidHeader = TRUE))
+                                     )
+                            ),
+                   tabPanel(title = "Análisis Detallado",value = "cr_detalle",
+                            fluidRow(column(width = 4,
+                                            box(title = "Configuración",uiOutput("standarUI"),width = 12,status = "primary",solidHeader = TRUE)
+                            ),
+                            column(width = 8,
+                                   box(title = "Participación Sector por Monto de Subsidios",plotlyOutput("part_graf_mpio"),width = 12,status = "primary",solidHeader = TRUE),
+                                   box(title = "Serie Histórica Monto de Subsidios",plotlyOutput("hist_graf_mpio"),width = 12,status = "primary",solidHeader = TRUE)
+                                   )
+                            )
+                            )
+                   )
+            ),
     tabItem(tabName = 'calculo_fw')
   )
-)
-)
 )
 )
 
