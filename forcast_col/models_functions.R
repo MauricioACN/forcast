@@ -1,3 +1,10 @@
+library(xts)
+library(forecast)
+library(TTR)
+library(MLmetrics)
+library(tidyverse)
+library(astsa)
+library(tseries)
 
 lista_modelos = data.frame("modelos"=c("Pronóstico Naive",
                                        "Modelo Exponencial Suavizado",
