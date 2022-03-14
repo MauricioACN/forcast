@@ -653,17 +653,17 @@ server <- function(input, output,session) {
   output$proyeUI <- renderUI({
     list(
       shiny::selectInput(inputId = "proye_depto",
-                         label = "Seleccion el Departamento a Analizar: ",
+                         label = "Seleccione el Departamento a Analizar: ",
                          multiple = F,
-                         choices = unique(depto$NOMBRE_DPT),
-                         selected = unique(depto$NOMBRE_DPT)[1]),
+                         choices = unique(data_model$Departamento),
+                         selected = unique(data_model$Departamento)[1]),
     shiny::selectInput(inputId = "time_forecast",
-                       label = "Seleccion la cantidad de meses que desea pronosticar: ",
+                       label = "Seleccione la cantidad de meses que desea pronosticar: ",
                        multiple = F,
                        choices = c(1,6,12,24),
                        selected = 12),
     shiny::selectInput(inputId = "model",
-                       label = "Seleccion el o los modelos que desea aplciar: ",
+                       label = "Seleccione el o los modelos que desea aplciar: ",
                        multiple = T,
                        choices = c("Pronóstico Naive",
                                    "Modelo Exponencial Suavizado",
@@ -672,7 +672,14 @@ server <- function(input, output,session) {
                                    "Auto Arima",
                                    "Sarima"),
                        selected = "Auto Arima"),
-  shiny::textOutput(outputId = "texto_para_model")
+  shiny::textOutput(outputId = "texto_para_model"),
+  shiny::selectInput(inputId = "prom_movil",
+                     label = "Seleccion el tipo de promedio que desea aplciar: ",
+                     multiple = F,
+                     choices = c("Promedio Movil",
+                                 "Promedio Histórico"),
+                     selected = "Promedio Movil"),
+  shiny::textOutput(outputId = "texto_para_prom_movl")
     )
 
   })
@@ -686,10 +693,99 @@ server <- function(input, output,session) {
 
   })
 
+  output$texto_para_prom_movl <- renderText({
+
+    if(input$prom_movil=="Promedio Movil"){
+
+      paste0("Se aplicará el promedio movil de ",input$time_forecast, " periodos.
+             Esto para calcular el valor de los subsidios sobre la proyección de los desembolsos.")
+
+    }
+
+  })
+
   data_model_trans <- reactive({
 
-    data_model %>% filter(COD_DPT==input$proye_depto)
+    data_model_filtered <- data_model %>%
+      filter(Departamento==input$proye_depto) %>%
+      as.data.frame()
+    model_proccesing(df = data_model_filtered,
+                     model = input$model,
+                     time_imput = as.numeric(input$time_forecast),
+                     prom_movil = input$prom_movil)
 
+  })
+
+  output$mape <-renderDataTable({
+
+    data_model_trans()$mape_modelos
+
+  })
+
+  temp_grap_trans <- reactive({
+
+    name_homo = lista_modelos$funciones[lista_modelos$modelos==input$model]
+    plot_df = data_model_trans()$salida_pronostico
+
+    plot_df = plot_df %>% select(FECCORTE,Total_millones,ifelse(length(input$model)>1,"Prom_Models",name_homo))
+
+    plot_df = gather(data = plot_df,key = "Variable",
+                     value = Total_millones,-FECCORTE)
+    plot_df = plot_df %>% rename(Total_Creditos=Total_millones)
+    plot_df
+  })
+
+  output$proye_depto <- renderPlot({
+
+    # name_homo = lista_modelos$funciones[lista_modelos$modelos==input$model]
+    # plot_df = data_model_trans()$salida_pronostico
+    plot_df = temp_grap_trans()
+    # Multiple line plot
+    p <- ggplot(plot_df, aes(x = FECCORTE, y = Total_Creditos)) +
+      geom_line(aes(color = Variable), size = 1) +
+      scale_color_manual(values = c("#00AFBB", "#E7B800")) +
+      theme_classic()
+
+    # p = ggplot(plot_df)+
+    #   geom_line(aes(x=FECCORTE,y = Total_millones),color="red")
+    # if(length(input$model)>1){
+    #   p <- p +geom_line(aes(x=FECCORTE,y = Prom_Models),color="green")
+    # }
+    # else{
+    #   p <- p +geom_line(aes_string(x="FECCORTE",y = name_homo),color = "green")
+    # }
+    #
+    # p <- p+ggtitle(paste("Proyecciones para el ",input$proye_depto))+
+    #   theme_classic()
+    # plotly::ggplotly(p)
+    p
+      })
+
+
+  temp_grap_trans_subsi <- reactive({
+
+    # name_homo = lista_modelos$funciones[lista_modelos$modelos==input$model]
+    plot_df = data_model_trans()$salida_subsidios
+
+    # plot_df = plot_df %>% select(FECCORTE,Total_subsidio,ifelse(length(input$model)>1,"Prom_Models",name_homo))
+
+    plot_df = plot_df %>% select(FECCORTE,Total_subsidio,Subsidios)
+
+    plot_df = gather(data = plot_df,key = "Variable",
+                     value = Total_subsidio,-FECCORTE)
+    plot_df = plot_df %>% rename(Total_Subsidios=Total_subsidio)
+    plot_df
+  })
+
+  output$proye_depto_subsi <- renderPlot({
+
+    plot_df = temp_grap_trans_subsi()
+    # Multiple line plot
+    p <- ggplot(plot_df, aes(x = FECCORTE, y = Total_Subsidios)) +
+      geom_line(aes(color = Variable), size = 1) +
+      scale_color_manual(values = c("#00AFBB", "#E7B800")) +
+      theme_classic()
+    p
   })
 
 }

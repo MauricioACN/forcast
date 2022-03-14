@@ -22,24 +22,7 @@ plot_df = full_join(lista[[1]]$depto_ts_train,lista[[1]]$depto_ts_test)
 
 plot_df$promedio_models = rowMeans(plot_df[,c(5:9)],na.rm = T)
 
-p = ggplot(plot_df)+
-  geom_line(aes(x=FECCORTE,y = Total_millones),color="red")+
-  geom_line(aes(x=FECCORTE,y = naive,colour = "naive"))+
-  geom_line(aes(x=FECCORTE,y = ets_forecast,colour = "ets_forecast"))+
-  geom_line(aes(x=FECCORTE,y = tbats_forecast,colour = "tbats_forecast"))+
-  geom_line(aes(x=FECCORTE,y = arima_forcast,colour = "arima_forcast"))+
-  geom_line(aes(x=FECCORTE,y = sarima_forcast,colour = "sarima_forcast"))+
-  scale_color_manual(name = "Modelos",
-                     values = c("naive" = "darkblue",
-                                "ets_forecast" = "blue",
-                                "tbats_forecast" = "green",
-                                "arima_forcast" = "pink",
-                                "sarima_forcast" = "#4287f5",
-                                "promedio_models" = "#42f5f2"))+
-  ggtitle("Proyecciones para el Departamento Antioquia")+
-  theme_classic()
 
-plotly::ggplotly(p)
 
 
 

@@ -169,7 +169,7 @@ df_mpio_agg = df %>% group_by(FECCORTE_F,COD_MPIO_INVERSION,SECTOR_F,TIPO_PRODUC
 
 ### datos para el modelo
 df_data_model = data_clean(df = df,type = "mensual")
-df_data_model = df_data_model %>% group_by(FECCORTE,COD_DPT) %>%
+df_data_model = df_data_model %>% group_by(FECCORTE,COD_DPT,Departamento) %>%
   summarise(Total_millones = sum(Millones,na.rm=T),
             Total_subsidio = sum(Subsidio,na.rm=T),
             Prop_subs = round(Total_subsidio/Total_millones,2))

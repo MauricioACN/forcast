@@ -87,7 +87,16 @@ ui <- dashboardPage(skin = 'blue',
                             fluidRow(column(width = 3,
                                             box(title = "Configuración",uiOutput("proyeUI"),width = 12,status = "primary",solidHeader = TRUE)
                                             ),
-                            column(width = 9,box(title = "Proyecciones por Departamento",plotlyOutput("proye_depto"),width = 12,status = "primary",solidHeader = TRUE))
+                            column(width = 9,
+                              tabBox(id = "sds",title = "Proyecciones por Departamento",width = 12,
+                                     tabPanel(title = "Crédito",plotOutput("proye_depto")),
+                                     tabPanel(title = "Subsidio",plotOutput("proye_depto_subsi"))),
+                              box(title = "Métrica de Desempeño de Modelo(s)",
+                                             dataTableOutput("mape"),
+                                             width = 12,
+                                             status = "primary",
+                                             solidHeader = TRUE)
+                            )
                             )
                             )
                    )
