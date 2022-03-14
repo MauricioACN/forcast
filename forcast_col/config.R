@@ -92,4 +92,7 @@ df_mpio_agg = readRDS("data_clean/mpios_mapa.rds")
 paletteBins <- c(0, 1000, 2000, 3000, 5000, 10000, 30000, 100000, 500000)
 colorPalette <- colorBin(palette = "YlOrBr", domain = unique(df_depto_agg$total_creditos), na.color = "transparent", bins = paletteBins)
 
-colorPalette_mpio <- colorBin(palette = "YlOrBr", domain = unique(df_mpio_agg$total_creditos), na.color = "transparent", bins = paletteBins)
+
+### data for model
+data_model = readRDS("data_clean/data_model.rds")
+

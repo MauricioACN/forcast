@@ -81,7 +81,17 @@ ui <- dashboardPage(skin = 'blue',
                             )
                    )
             ),
-    tabItem(tabName = 'calculo_fw')
+    tabItem(tabName = 'calculo_fw',
+            tabBox(id='cfw', title = 'Proyecciones', width = '600px',height = '100%',
+                   tabPanel(title = "Análisis General",value = 'cr_general',
+                            fluidRow(column(width = 3,
+                                            box(title = "Configuración",uiOutput("proyeUI"),width = 12,status = "primary",solidHeader = TRUE)
+                                            ),
+                            column(width = 9,box(title = "Proyecciones por Departamento",plotlyOutput("proye_depto"),width = 12,status = "primary",solidHeader = TRUE))
+                            )
+                            )
+                   )
+            )
   )
 )
 )

@@ -7,7 +7,7 @@ library(rgdal)
 library(plotly)
 
 source("config.R")
-
+source("models_functions.R",encoding = "utf-8")
 # Define server logic required to draw a histogram
 server <- function(input, output,session) {
 
@@ -369,6 +369,9 @@ server <- function(input, output,session) {
   })
 
   output$map_mp <- renderLeaflet({
+
+    colorPalette_mpio <- colorBin(palette = "YlOrBr", domain = mapa_data_mp()$total_creditos, na.color = "transparent", bins = paletteBins)
+
     leaflet(df_mpio_agg) %>%
       addTiles() %>%
       setView(lat =  4.1645646, lng = -71.7172296, zoom = 5) %>%
@@ -402,7 +405,7 @@ server <- function(input, output,session) {
                   weight = 1,
                   smoothFactor = 0.5,
                   opacity = 1.0, fillOpacity = 0.5,
-                  fillColor = ~colorQuantile("YlOrRd", total_creditos)(total_creditos),
+                  fillColor = ~ifelse(total_creditos>0,colorQuantile("YlOrRd", total_creditos)(total_creditos),"transparent"),
                   highlightOptions = highlightOptions(color = "red", weight = 2,
                                                       bringToFront = TRUE),
                   label = ~lapply(state_popup,htmltools::HTML)
@@ -644,6 +647,50 @@ server <- function(input, output,session) {
 
   })
 
+
+  ######################## Proyecciones ############################
+
+  output$proyeUI <- renderUI({
+    list(
+      shiny::selectInput(inputId = "proye_depto",
+                         label = "Seleccion el Departamento a Analizar: ",
+                         multiple = F,
+                         choices = unique(depto$NOMBRE_DPT),
+                         selected = unique(depto$NOMBRE_DPT)[1]),
+    shiny::selectInput(inputId = "time_forecast",
+                       label = "Seleccion la cantidad de meses que desea pronosticar: ",
+                       multiple = F,
+                       choices = c(1,6,12,24),
+                       selected = 12),
+    shiny::selectInput(inputId = "model",
+                       label = "Seleccion el o los modelos que desea aplciar: ",
+                       multiple = T,
+                       choices = c("Pronóstico Naive",
+                                   "Modelo Exponencial Suavizado",
+                                   "Pronóstico de Holt-Winters",
+                                   "Pronóstico TBATS",
+                                   "Auto Arima",
+                                   "Sarima"),
+                       selected = "Auto Arima"),
+  shiny::textOutput(outputId = "texto_para_model")
+    )
+
+  })
+
+  output$texto_para_model <- renderText({
+
+    if(length(input$model)>1){
+
+      "Se aplicará el promedio de los modelos seleccionados"
+    }
+
+  })
+
+  data_model_trans <- reactive({
+
+    data_model %>% filter(COD_DPT==input$proye_depto)
+
+  })
 
 }
 

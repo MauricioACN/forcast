@@ -167,6 +167,13 @@ df_mpio_agg = df %>% group_by(FECCORTE_F,COD_MPIO_INVERSION,SECTOR_F,TIPO_PRODUC
          SECTOR = SECTOR_F,
          TIPO_PRODUCTOR = TIPO_PRODUCTOR_F)
 
+### datos para el modelo
+df_data_model = data_clean(df = df,type = "mensual")
+df_data_model = df_data_model %>% group_by(FECCORTE,COD_DPT) %>%
+  summarise(Total_millones = sum(Millones,na.rm=T),
+            Total_subsidio = sum(Subsidio,na.rm=T),
+            Prop_subs = round(Total_subsidio/Total_millones,2))
+
 dif_mpios= intersect(unique(df_mpio_agg$COD_MPIO_INVERSION),unique(mpio$MPIOS))
 df_mpio_agg = df_mpio_agg %>% filter(COD_MPIO_INVERSION %in% dif_mpios)
 
@@ -196,6 +203,7 @@ write_rds(mynewspdf,"forcast_col/data_clean/deptos.rds")
 write_rds(deptos_agg_mapa,"forcast_col/data_clean/deptos_mapa.rds")
 write_rds(mpio_agg,"forcast_col/data_clean/mpio.rds")
 write_rds(mpio_agg_mapa,"forcast_col/data_clean/mpios_mapa.rds")
+write_rds(df_data_model,"forcast_col/data_clean/data_model.rds")
 
 
 
